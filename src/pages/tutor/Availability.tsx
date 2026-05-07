@@ -176,8 +176,8 @@ export const Availability = () => {
       return;
     }
 
-    const nextStatus = slot.status === "available" ? "booked" : "available";
-
+    const nextStatus =
+      slot.status === "available" ? "unavailable" : "available";
     try {
       setSaving(true);
       setError("");
@@ -382,7 +382,7 @@ export const Availability = () => {
                             className="text-[9px] font-black uppercase tracking-widest text-text-muted hover:text-primary transition-all"
                           >
                             {slot.status === "available"
-                              ? "Mark Booked"
+                              ? "Mark Unavailable"
                               : "Mark Available"}
                           </button>
 
