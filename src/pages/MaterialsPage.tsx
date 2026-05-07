@@ -56,12 +56,18 @@ export const MaterialsPage = ({
           await loadMaterials(providedTutorId);
           return;
         }
-
         const currentUser = await getCurrentUserFromApi();
+        const tutorId = currentUser.userId;
 
         if (role === "tutor") {
-          setCurrentTutorId(currentUser.id);
-          await loadMaterials(currentUser.id);
+          if (!tutorId) {
+            throw new Error(
+              "Tutor ID was not found in the current user profile.",
+            );
+          }
+
+          setCurrentTutorId(tutorId);
+          await loadMaterials(tutorId);
           return;
         }
 
@@ -198,7 +204,7 @@ export const MaterialsPage = ({
           <Loader2 size={20} className="animate-spin" />
           Loading materials...
         </div>
-      ) : materials.length === 0 && currentTutorId ? (
+      ) : materials.length === 0 ? (
         <div className="glass-card p-8 text-center text-sm font-black uppercase tracking-widest text-text-muted">
           No materials uploaded yet
         </div>
