@@ -120,6 +120,12 @@ export default function App() {
           return <MaterialsPage role={user.role} />;
         case "profile":
           return <ProfilePage user={user} onLogout={handleLogout} />;
+        case "tutorProfile":
+          return selectedTutor ? (
+            <TutorProfile tutor={selectedTutor} navigateTo={navigateTo} />
+          ) : (
+            <TutorsList navigateTo={navigateTo} />
+          );
         default:
           return <TutorDashboard stats={stats} navigateTo={navigateTo} />;
       }
@@ -128,24 +134,33 @@ export default function App() {
     switch (currentPage) {
       case "dashboard":
         return <Dashboard stats={stats} navigateTo={navigateTo} />;
+
       case "tutors":
         return <TutorsList navigateTo={navigateTo} />;
-      case "profile":
+
+      case "tutorProfile":
         return selectedTutor ? (
           <TutorProfile tutor={selectedTutor} navigateTo={navigateTo} />
         ) : (
-          <ProfilePage user={user} onLogout={handleLogout} />
+          <TutorsList navigateTo={navigateTo} />
         );
+
+      case "profile":
+        return <ProfilePage user={user} onLogout={handleLogout} />;
+
       case "booking":
         return selectedTutor ? (
           <BookingPage tutor={selectedTutor} navigateTo={navigateTo} />
         ) : (
           <TutorsList navigateTo={navigateTo} />
         );
+
       case "bookings":
         return <MyBookings navigateTo={navigateTo} />;
+
       case "materials":
         return <MaterialsPage role={user.role} />;
+
       default:
         return <Dashboard stats={stats} navigateTo={navigateTo} />;
     }
@@ -163,12 +178,7 @@ export default function App() {
 
   if (!user) {
     if (authView === "login") {
-      return (
-        <LoginPage
-          setView={setAuthView}
-          onLogin={handleLoginSuccess}
-        />
-      );
+      return <LoginPage setView={setAuthView} onLogin={handleLoginSuccess} />;
     }
 
     if (authView === "signup") {

@@ -10,11 +10,19 @@ import {
   uploadFileToS3,
 } from "../api";
 import { getCurrentUserFromApi } from "../authService";
+import { getMyBookings } from "../bookingService";
+
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 interface MaterialsPageProps {
   role: UserRole;
   tutorId?: string;
 }
+
+type MaterialWithTutor = MaterialFile & {
+  tutorId?: string;
+  tutorName?: string;
+};
 
 function formatFileSize(size: number) {
   if (size < 1024) return `${size} B`;
@@ -27,22 +35,73 @@ function formatDate(value: string) {
   return new Date(value).toLocaleDateString();
 }
 
+async function getTutorsMap() {
+  const response = await fetch(`${API_BASE_URL}/auth/tutors`);
+
+  if (!response.ok) {
+    return {};
+  }
+
+  const data = await response.json();
+  const tutors = data.tutors || [];
+
+  return tutors.reduce((acc: Record<string, string>, tutor: any) => {
+    acc[tutor.userId] = tutor.name || tutor.email || tutor.userId;
+    return acc;
+  }, {});
+}
+
 export const MaterialsPage = ({
   role,
   tutorId: providedTutorId,
 }: MaterialsPageProps) => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const [materials, setMaterials] = useState<MaterialFile[]>([]);
+  const [materials, setMaterials] = useState<MaterialWithTutor[]>([]);
   const [currentTutorId, setCurrentTutorId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [deletingKey, setDeletingKey] = useState<string | null>(null);
   const [error, setError] = useState("");
 
-  const loadMaterials = async (targetTutorId: string) => {
+  const loadTutorMaterials = async (targetTutorId: string) => {
     const files = await getMaterials(targetTutorId);
-    setMaterials(files);
+    setMaterials(files.map((file) => ({ ...file, tutorId: targetTutorId })));
+  };
+
+  const loadStudentMaterials = async () => {
+    const bookingsResponse = await getMyBookings();
+    const bookings = bookingsResponse.bookings || bookingsResponse.items || [];
+
+    const activeBookings = bookings.filter(
+      (booking: any) =>
+        booking.status === "confirmed" || booking.status === "pending"
+    );
+
+    const uniqueTutorIds = Array.from(
+      new Set(activeBookings.map((booking: any) => booking.tutorId))
+    ).filter(Boolean) as string[];
+
+    if (uniqueTutorIds.length === 0) {
+      setMaterials([]);
+      return;
+    }
+
+    const tutorsMap = await getTutorsMap();
+
+    const allMaterials = await Promise.all(
+      uniqueTutorIds.map(async (tutorId) => {
+        const files = await getMaterials(tutorId);
+
+        return files.map((file) => ({
+          ...file,
+          tutorId,
+          tutorName: tutorsMap[tutorId] || tutorId,
+        }));
+      })
+    );
+
+    setMaterials(allMaterials.flat());
   };
 
   useEffect(() => {
@@ -53,30 +112,27 @@ export const MaterialsPage = ({
 
         if (providedTutorId) {
           setCurrentTutorId(providedTutorId);
-          await loadMaterials(providedTutorId);
+          await loadTutorMaterials(providedTutorId);
           return;
         }
-        const currentUser = await getCurrentUserFromApi();
-        const tutorId = currentUser.userId;
 
         if (role === "tutor") {
+          const currentUser = await getCurrentUserFromApi();
+          const tutorId = currentUser.userId;
+
           if (!tutorId) {
-            throw new Error(
-              "Tutor ID was not found in the current user profile.",
-            );
+            throw new Error("Tutor ID was not found in the current user profile.");
           }
 
           setCurrentTutorId(tutorId);
-          await loadMaterials(tutorId);
+          await loadTutorMaterials(tutorId);
           return;
         }
 
-        setCurrentTutorId(null);
-        setMaterials([]);
+        await loadStudentMaterials();
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Failed to load materials",
-        );
+        console.error(err);
+        setError(err instanceof Error ? err.message : "Failed to load materials");
       } finally {
         setLoading(false);
       }
@@ -90,13 +146,11 @@ export const MaterialsPage = ({
   };
 
   const handleFileSelected = async (
-    event: React.ChangeEvent<HTMLInputElement>,
+    event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const file = event.target.files?.[0];
 
-    if (!file || !currentTutorId) {
-      return;
-    }
+    if (!file || !currentTutorId) return;
 
     try {
       setUploading(true);
@@ -109,13 +163,11 @@ export const MaterialsPage = ({
       });
 
       await uploadFileToS3(uploadInfo.uploadUrl, file);
-      await loadMaterials(currentTutorId);
+      await loadTutorMaterials(currentTutorId);
 
       event.target.value = "";
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to upload material",
-      );
+      setError(err instanceof Error ? err.message : "Failed to upload material");
     } finally {
       setUploading(false);
     }
@@ -126,25 +178,19 @@ export const MaterialsPage = ({
   };
 
   const handleDelete = async (key: string) => {
-    if (!currentTutorId) {
-      return;
-    }
+    if (!currentTutorId) return;
 
     const confirmed = window.confirm("Delete this material?");
-    if (!confirmed) {
-      return;
-    }
+    if (!confirmed) return;
 
     try {
       setDeletingKey(key);
       setError("");
 
       await deleteMaterial(key);
-      await loadMaterials(currentTutorId);
+      await loadTutorMaterials(currentTutorId);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to delete material",
-      );
+      setError(err instanceof Error ? err.message : "Failed to delete material");
     } finally {
       setDeletingKey(null);
     }
@@ -193,9 +239,9 @@ export const MaterialsPage = ({
         </div>
       )}
 
-      {role !== "tutor" && !providedTutorId && (
+      {role !== "tutor" && (
         <div className="glass-card p-8 text-sm font-bold text-text-muted">
-          Materials are shown when a tutor or session is selected.
+          Materials shown here belong to tutors you have booked sessions with.
         </div>
       )}
 
@@ -250,6 +296,12 @@ export const MaterialsPage = ({
               <h3 className="font-bold text-lg mb-1 group-hover:text-primary transition-colors line-clamp-1">
                 {file.fileName}
               </h3>
+
+              {file.tutorName && (
+                <p className="text-xs font-black text-text-muted uppercase tracking-widest mb-3">
+                  Tutor: {file.tutorName}
+                </p>
+              )}
 
               <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-4">
                 Material

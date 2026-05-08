@@ -24,6 +24,21 @@ function getDayName(dateValue: string) {
   return date.toLocaleDateString("en-US", { weekday: "long" });
 }
 
+function getNextDateForDay(dayName: string) {
+  const today = new Date();
+
+  const targetDay = days.indexOf(dayName);
+  const currentDay = today.getDay() === 0 ? 6 : today.getDay() - 1;
+
+  let diff = targetDay - currentDay;
+  if (diff < 0) diff += 7;
+
+  const nextDate = new Date(today);
+  nextDate.setDate(today.getDate() + diff);
+
+  return nextDate.toISOString().split("T")[0];
+}
+
 export const Availability = () => {
   const [slots, setSlots] = useState<AvailabilitySlot[]>([]);
   const [currentTutorId, setCurrentTutorId] = useState<string | null>(null);
@@ -54,17 +69,14 @@ export const Availability = () => {
         const tutorId = currentUser.userId;
 
         if (!tutorId) {
-          throw new Error(
-            "Tutor ID was not found in the current user profile.",
-          );
+          throw new Error("Tutor ID was not found in the current user profile.");
         }
 
         setCurrentTutorId(tutorId);
-
         await loadAvailability(tutorId);
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : "Failed to load availability",
+          err instanceof Error ? err.message : "Failed to load availability"
         );
       } finally {
         setLoading(false);
@@ -90,9 +102,19 @@ export const Availability = () => {
     });
   };
 
-  const handleOpenAddForm = () => {
+  const handleOpenAddForm = (dayName?: string) => {
     setError("");
     setShowAddForm(true);
+
+    if (dayName) {
+      setForm((prev) => ({
+        ...prev,
+        date: getNextDateForDay(dayName),
+        startTime: "",
+        endTime: "",
+        subject: prev.subject || "General",
+      }));
+    }
   };
 
   const handleCancelAdd = () => {
@@ -104,9 +126,7 @@ export const Availability = () => {
   const handleCreateSlot = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!currentTutorId) {
-      return;
-    }
+    if (!currentTutorId) return;
 
     if (!form.date || !form.startTime || !form.endTime) {
       setError("Please fill in the date, start time, and end time.");
@@ -137,7 +157,7 @@ export const Availability = () => {
       setShowAddForm(false);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Failed to add availability slot",
+        err instanceof Error ? err.message : "Failed to add availability slot"
       );
     } finally {
       setSaving(false);
@@ -145,14 +165,10 @@ export const Availability = () => {
   };
 
   const handleDeleteSlot = async (slot: AvailabilitySlot) => {
-    if (!currentTutorId) {
-      return;
-    }
+    if (!currentTutorId) return;
 
     const confirmed = window.confirm("Delete this availability slot?");
-    if (!confirmed) {
-      return;
-    }
+    if (!confirmed) return;
 
     try {
       setSaving(true);
@@ -164,7 +180,7 @@ export const Availability = () => {
       setError(
         err instanceof Error
           ? err.message
-          : "Failed to delete availability slot",
+          : "Failed to delete availability slot"
       );
     } finally {
       setSaving(false);
@@ -172,12 +188,11 @@ export const Availability = () => {
   };
 
   const handleToggleStatus = async (slot: AvailabilitySlot) => {
-    if (!currentTutorId) {
-      return;
-    }
+    if (!currentTutorId) return;
 
     const nextStatus =
       slot.status === "available" ? "unavailable" : "available";
+
     try {
       setSaving(true);
       setError("");
@@ -191,7 +206,7 @@ export const Availability = () => {
       setError(
         err instanceof Error
           ? err.message
-          : "Failed to update availability slot",
+          : "Failed to update availability slot"
       );
     } finally {
       setSaving(false);
@@ -211,7 +226,7 @@ export const Availability = () => {
         </div>
 
         <button
-          onClick={handleOpenAddForm}
+          onClick={() => handleOpenAddForm()}
           disabled={saving || !currentTutorId}
           className="bg-primary text-white px-8 py-4 rounded-[1.5rem] font-black text-sm uppercase tracking-widest flex items-center gap-3 shadow-xl shadow-primary/20 hover:shadow-primary/40 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
         >
@@ -404,7 +419,7 @@ export const Availability = () => {
                 </div>
 
                 <button
-                  onClick={handleOpenAddForm}
+                  onClick={() => handleOpenAddForm(day)}
                   disabled={saving || !currentTutorId}
                   className="w-full py-4 border-2 border-dashed border-gray-100 rounded-2xl text-[10px] font-black uppercase tracking-widest text-text-muted hover:border-primary hover:text-primary transition-all disabled:opacity-60 disabled:cursor-not-allowed"
                 >
