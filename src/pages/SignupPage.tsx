@@ -13,6 +13,10 @@ export const SignupPage = ({ setView }: SignupPageProps) => {
 
   const [role, setRole] = useState<"student" | "tutor">("student");
 
+  const [subjects, setSubjects] = useState("");
+  const [bio, setBio] = useState("");
+  const [hourlyRate, setHourlyRate] = useState("");
+
   const [confirmationCode, setConfirmationCode] = useState("");
   const [needsConfirmation, setNeedsConfirmation] = useState(false);
 
@@ -25,7 +29,12 @@ export const SignupPage = ({ setView }: SignupPageProps) => {
     setLoading(true);
 
     try {
-      await registerUser(email, password, name, role);
+      await registerUser(email, password, name, role, {
+        subjects,
+        bio,
+        hourlyRate,
+      });
+
       setNeedsConfirmation(true);
     } catch (err: any) {
       console.error(err);
@@ -73,7 +82,7 @@ export const SignupPage = ({ setView }: SignupPageProps) => {
               Create Account
             </h2>
             <p className="text-sm font-bold text-text-muted uppercase tracking-widest mt-2">
-              Join SmartTutor
+              Join LearnMate
             </p>
           </div>
 
@@ -89,7 +98,7 @@ export const SignupPage = ({ setView }: SignupPageProps) => {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Dana"
-                  className="w-full bg-gray-50 border border-gray-100 p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium text-sm"
+                  className="w-full bg-gray-50 border border-gray-100 p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 font-medium text-sm"
                 />
               </div>
 
@@ -103,7 +112,7 @@ export const SignupPage = ({ setView }: SignupPageProps) => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@example.com"
-                  className="w-full bg-gray-50 border border-gray-100 p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium text-sm"
+                  className="w-full bg-gray-50 border border-gray-100 p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 font-medium text-sm"
                 />
               </div>
 
@@ -117,7 +126,7 @@ export const SignupPage = ({ setView }: SignupPageProps) => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full bg-gray-50 border border-gray-100 p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium text-sm"
+                  className="w-full bg-gray-50 border border-gray-100 p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 font-medium text-sm"
                 />
               </div>
 
@@ -153,6 +162,52 @@ export const SignupPage = ({ setView }: SignupPageProps) => {
                 </div>
               </div>
 
+              {role === "tutor" && (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-text-muted ml-1">
+                      Subjects
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={subjects}
+                      onChange={(e) => setSubjects(e.target.value)}
+                      placeholder="Math, Physics, Programming"
+                      className="w-full bg-gray-50 border border-gray-100 p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 font-medium text-sm"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-text-muted ml-1">
+                      Hourly Rate
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      min="1"
+                      value={hourlyRate}
+                      onChange={(e) => setHourlyRate(e.target.value)}
+                      placeholder="25"
+                      className="w-full bg-gray-50 border border-gray-100 p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 font-medium text-sm"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-text-muted ml-1">
+                      Bio
+                    </label>
+                    <textarea
+                      required
+                      value={bio}
+                      onChange={(e) => setBio(e.target.value)}
+                      placeholder="Tell students about your experience..."
+                      className="w-full bg-gray-50 border border-gray-100 p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 font-medium text-sm min-h-[110px]"
+                    />
+                  </div>
+                </div>
+              )}
+
               {error && (
                 <p className="text-error text-[10px] font-black uppercase tracking-widest text-center">
                   {error}
@@ -183,7 +238,7 @@ export const SignupPage = ({ setView }: SignupPageProps) => {
                   value={confirmationCode}
                   onChange={(e) => setConfirmationCode(e.target.value)}
                   placeholder="123456"
-                  className="w-full bg-gray-50 border border-gray-100 p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium text-sm"
+                  className="w-full bg-gray-50 border border-gray-100 p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 font-medium text-sm"
                 />
               </div>
 

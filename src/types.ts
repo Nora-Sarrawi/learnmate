@@ -4,15 +4,21 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: UserRole;
+  role: "student" | "tutor";
   avatar?: string;
+  subjects?: string | string[];
+  bio?: string;
+  hourlyRate?: number;
 }
 
-export interface Tutor extends User {
+export interface Tutor {
+  id: string;
+  name: string;
+  email?: string;
+  role: "tutor";
+  avatar: string;
   subjects: string[];
   bio: string;
-  rating: number;
-  reviewCount: number;
   hourlyRate: number;
   availability: TimeSlot[];
 }

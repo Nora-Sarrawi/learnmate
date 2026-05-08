@@ -8,22 +8,38 @@ import {
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
+export type TutorSignupData = {
+  subjects?: string;
+  bio?: string;
+  hourlyRate?: string;
+};
+
 export async function registerUser(
   email: string,
   password: string,
   name: string,
-  role: "student" | "tutor"
+  role: "student" | "tutor",
+  tutorData?: TutorSignupData
 ) {
+  const userAttributes: Record<string, string> = {
+    email,
+    name,
+    "custom:role": role,
+  };
+
+  if (role === "tutor") {
+    userAttributes["custom:subjects"] =
+      tutorData?.subjects || "General Tutoring";
+    userAttributes["custom:bio"] =
+      tutorData?.bio || "Experienced tutor ready to help students succeed.";
+    userAttributes["custom:hourlyRate"] =
+      tutorData?.hourlyRate || "25";
+  }
+
   return signUp({
     username: email,
     password,
-    options: {
-      userAttributes: {
-        email,
-        name,
-        "custom:role": role,
-      },
-    },
+    options: { userAttributes },
   });
 }
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "motion/react";
-import { Search, Star } from "lucide-react";
+import { Search } from "lucide-react";
 import { Tutor } from "../types";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
@@ -20,6 +20,14 @@ async function getTutorsFromApi() {
   return data.tutors || [];
 }
 
+function normalizeSubjects(value: any) {
+  if (Array.isArray(value)) return value;
+  if (typeof value === "string") {
+    return value.split(",").map((s) => s.trim()).filter(Boolean);
+  }
+  return ["General Tutoring"];
+}
+
 function mapUserToTutor(user: any): Tutor {
   return {
     id: user.userId,
@@ -31,13 +39,11 @@ function mapUserToTutor(user: any): Tutor {
       `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(
         user.name || user.email || "Tutor"
       )}`,
-    subjects: user.subjects || ["General Tutoring"],
+    subjects: normalizeSubjects(user.subjects),
     bio: user.bio || "Experienced tutor ready to help students succeed.",
-    rating: user.rating || 5,
-    reviewCount: user.reviewCount || 0,
-    hourlyRate: user.hourlyRate || 25,
+    hourlyRate: Number(user.hourlyRate || 25),
     availability: [],
-  };
+  } ;
 }
 
 export const TutorsList = ({ navigateTo }: TutorsListProps) => {
@@ -53,9 +59,7 @@ export const TutorsList = ({ navigateTo }: TutorsListProps) => {
         setError("");
 
         const users = await getTutorsFromApi();
-        const mappedTutors = users.map(mapUserToTutor);
-
-        setTutors(mappedTutors);
+        setTutors(users.map(mapUserToTutor));
       } catch (err) {
         console.error(err);
         setError("Failed to load tutors");
@@ -86,19 +90,13 @@ export const TutorsList = ({ navigateTo }: TutorsListProps) => {
   }
 
   if (error) {
-    return (
-      <div className="p-10 text-center font-bold text-error">
-        {error}
-      </div>
-    );
+    return <div className="p-10 text-center font-bold text-error">{error}</div>;
   }
 
   return (
     <div className="space-y-8">
       <header>
-        <h1 className="text-3xl font-bold tracking-tight">
-          Find Your Expert
-        </h1>
+        <h1 className="text-3xl font-bold tracking-tight">Find Your Expert</h1>
         <p className="text-text-muted mt-1">
           Discover mentors who help you exceed your goals.
         </p>
@@ -118,23 +116,6 @@ export const TutorsList = ({ navigateTo }: TutorsListProps) => {
             className="w-full pl-12 pr-4 py-4 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 shadow-sm transition-all"
           />
         </div>
-
-        <div className="flex gap-2">
-          <select className="px-5 py-4 bg-white border border-gray-200 rounded-2xl text-xs font-bold uppercase tracking-widest focus:outline-none shadow-sm cursor-pointer hover:border-primary transition-all">
-            <option>All Subjects</option>
-            <option>Mathematics</option>
-            <option>Science</option>
-            <option>Engineering</option>
-            <option>Design</option>
-          </select>
-
-          <select className="px-5 py-4 bg-white border border-gray-200 rounded-2xl text-xs font-bold uppercase tracking-widest focus:outline-none shadow-sm cursor-pointer hover:border-primary transition-all">
-            <option>Price Range</option>
-            <option>$20 - $50</option>
-            <option>$50 - $100</option>
-            <option>$100+</option>
-          </select>
-        </div>
       </div>
 
       {filteredTutors.length === 0 ? (
@@ -148,7 +129,8 @@ export const TutorsList = ({ navigateTo }: TutorsListProps) => {
               layoutId={tutor.id}
               key={tutor.id}
               className="glass-card group overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 cursor-pointer border-b-4 border-transparent hover:border-primary"
-              onClick={() => navigateTo("tutorProfile", tutor)}            >
+              onClick={() => navigateTo("tutorProfile", tutor)}
+            >
               <div className="p-8">
                 <div className="flex justify-between items-start mb-6">
                   <div className="relative">
@@ -158,20 +140,13 @@ export const TutorsList = ({ navigateTo }: TutorsListProps) => {
                       className="w-20 h-20 rounded-3xl bg-gray-100 object-cover shadow-lg border-4 border-white"
                       referrerPolicy="no-referrer"
                     />
-                    <div
-                      className="absolute -bottom-1 -right-1 w-6 h-6 bg-success border-4 border-white rounded-full shadow-sm"
-                      title="Online"
-                    />
+                    <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-success border-4 border-white rounded-full shadow-sm" />
                   </div>
 
                   <div className="text-right">
-                    <div className="flex items-center gap-1 text-amber-500 font-bold text-lg">
-                      <Star size={18} fill="currentColor" />
-                      {tutor.rating}
-                    </div>
-                    <div className="text-[10px] text-text-muted font-bold uppercase tracking-tighter">
-                      {tutor.reviewCount} verified reviews
-                    </div>
+                    <span className="text-[10px] text-text-muted font-black uppercase tracking-widest">
+                      Tutor
+                    </span>
                   </div>
                 </div>
 
@@ -204,14 +179,14 @@ export const TutorsList = ({ navigateTo }: TutorsListProps) => {
 
                   <div className="flex flex-col">
                     <span className="text-[9px] text-text-muted uppercase font-bold tracking-widest mb-1">
-                      Booked sessions
+                      Status
                     </span>
-                    <span className="text-lg font-bold">Live</span>
+                    <span className="text-lg font-bold">Active</span>
                   </div>
                 </div>
 
                 <button className="w-full bg-gray-900 text-white py-4 rounded-2xl font-bold hover:bg-primary transition-all duration-300 shadow-xl shadow-gray-900/10">
-                  View Portfolio & Book
+                  View Profile & Book
                 </button>
               </div>
             </motion.div>

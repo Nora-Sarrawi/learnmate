@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ArrowLeft, Star, Calendar } from "lucide-react";
+import { ArrowLeft, Calendar } from "lucide-react";
 import { Tutor } from "../types";
 import { createBooking } from "../bookingService";
 import { getIdToken } from "../authService";
@@ -33,17 +33,17 @@ export const TutorProfile = ({ tutor, navigateTo }: TutorProfileProps) => {
 
         const token = await getIdToken();
 
-        if (!token) {
-          throw new Error("No token found");
-        }
-
         const response = await fetch(
-          `${API_BASE_URL}/tutors/availability?tutorId=${encodeURIComponent(tutor.id)}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+          `${API_BASE_URL}/tutors/availability?tutorId=${encodeURIComponent(
+            tutor.id
+          )}`,
+          token
+            ? {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            : undefined
         );
 
         if (!response.ok) {
@@ -104,20 +104,17 @@ export const TutorProfile = ({ tutor, navigateTo }: TutorProfileProps) => {
 
           <h1 className="text-4xl font-black tracking-tight">{tutor.name}</h1>
 
-          <div className="flex items-center justify-center gap-4">
-            <div className="flex items-center gap-1.5 text-amber-600 font-bold bg-amber-50 px-4 py-1.5 rounded-full text-sm">
-              <Star size={16} fill="currentColor" />
-              {tutor.rating}
-            </div>
-
-            <p className="text-primary font-bold text-xs uppercase tracking-[0.25em]">
-              {tutor.subjects.join(" • ")}
-            </p>
-          </div>
+          <p className="text-primary font-bold text-xs uppercase tracking-[0.25em]">
+            {tutor.subjects.join(" • ")}
+          </p>
 
           <p className="text-sm text-text-muted leading-relaxed max-w-2xl mx-auto italic">
             "{tutor.bio}"
           </p>
+
+          <div className="inline-flex items-center gap-2 px-6 py-3 bg-primary/5 text-primary rounded-2xl text-xs font-black uppercase tracking-widest">
+            ${tutor.hourlyRate}/hr
+          </div>
         </div>
 
         <div className="glass-card p-10 space-y-8">
@@ -158,13 +155,19 @@ export const TutorProfile = ({ tutor, navigateTo }: TutorProfileProps) => {
                     </div>
                   </div>
 
-                  <button
-                    onClick={() => handleBook(slot)}
-                    disabled={bookingSlotId === slot.slotId}
-                    className="px-8 py-4 bg-primary text-white rounded-2xl text-xs font-black uppercase tracking-[0.2em] hover:bg-primary/90 disabled:opacity-60"
-                  >
-                    {bookingSlotId === slot.slotId ? "Booking..." : "Book"}
-                  </button>
+                  <div className="flex items-center gap-4">
+                    <span className="text-sm font-black text-primary">
+                      ${tutor.hourlyRate}
+                    </span>
+
+                    <button
+                      onClick={() => handleBook(slot)}
+                      disabled={bookingSlotId === slot.slotId}
+                      className="px-8 py-4 bg-primary text-white rounded-2xl text-xs font-black uppercase tracking-[0.2em] hover:bg-primary/90 disabled:opacity-60"
+                    >
+                      {bookingSlotId === slot.slotId ? "Booking..." : "Book"}
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

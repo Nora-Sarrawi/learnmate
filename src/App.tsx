@@ -45,6 +45,9 @@ export default function App() {
           name: apiUser.name,
           email: apiUser.email,
           role: apiUser.role,
+          subjects: apiUser.subjects,
+          bio: apiUser.bio,
+          hourlyRate: apiUser.hourlyRate,
         } as User);
       } catch {
         setUser(null);
@@ -199,9 +202,8 @@ export default function App() {
       />
 
       <main
-        className={`transition-all duration-500 min-h-screen pt-4 pb-32 lg:pb-20 ${
-          isSidebarOpen ? "lg:pl-64" : "lg:pl-20"
-        }`}
+        className={`transition-all duration-500 min-h-screen pt-4 pb-32 lg:pb-20 ${isSidebarOpen ? "lg:pl-64" : "lg:pl-20"
+          }`}
       >
         <div className="max-w-7xl mx-auto px-6 md:px-8 py-6">
           <nav className="flex justify-end mb-10 gap-6 items-center">
@@ -217,9 +219,8 @@ export default function App() {
               className="p-3 bg-white border border-gray-100 rounded-2xl text-text-muted hover:text-primary transition-all shadow-sm hover:shadow-md"
             >
               <Plus
-                className={`transform transition-transform duration-500 ${
-                  isSidebarOpen ? "rotate-45" : ""
-                }`}
+                className={`transform transition-transform duration-500 ${isSidebarOpen ? "rotate-45" : ""
+                  }`}
               />
             </button>
           </nav>
