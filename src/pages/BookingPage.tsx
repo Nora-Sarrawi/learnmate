@@ -12,7 +12,6 @@ export const BookingPage = ({ tutor, navigateTo }: BookingPageProps) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // لازم تكون نفس slotId الموجودة في Availability table
   const selectedTimeSlot = "2026-04-25T10:00";
 
   const handleBookSession = async () => {

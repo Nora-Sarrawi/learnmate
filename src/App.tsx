@@ -136,7 +136,7 @@ export default function App() {
 
     switch (currentPage) {
       case "dashboard":
-        return <Dashboard stats={stats} navigateTo={navigateTo} />;
+        return <Dashboard navigateTo={navigateTo} />;
 
       case "tutors":
         return <TutorsList navigateTo={navigateTo} />;
@@ -165,7 +165,7 @@ export default function App() {
         return <MaterialsPage role={user.role} />;
 
       default:
-        return <Dashboard stats={stats} navigateTo={navigateTo} />;
+        return <Dashboard navigateTo={navigateTo} />;
     }
   };
 

@@ -1,10 +1,11 @@
 import React from 'react';
-import { 
-  LayoutDashboard, 
-  Users, 
-  Calendar, 
-  BookOpen, 
-  User, 
+import logo from "../../assets/logo.png";
+import {
+  LayoutDashboard,
+  Users,
+  Calendar,
+  BookOpen,
+  User,
   LogOut,
   Clock,
   Briefcase
@@ -42,8 +43,13 @@ export const Sidebar = ({ currentPage, isSidebarOpen, navigateTo, user, onLogout
     <aside className={`fixed inset-y-0 left-0 bg-white border-r border-gray-200 transition-all duration-300 z-50 ${isSidebarOpen ? 'w-64' : 'w-20'} hidden lg:block`}>
       <div className="flex flex-col h-full py-8">
         <div className="px-6 mb-10 flex items-center gap-3">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white font-bold">◈</div>
-          {isSidebarOpen && <span className="font-bold text-xl text-primary tracking-tighter">SmartTutor</span>}
+
+
+          {isSidebarOpen && (
+            <span className="font-black text-2xl tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              LearnMate
+            </span>
+          )}
         </div>
 
         <nav className="flex-1 px-4 space-y-2">
@@ -51,11 +57,10 @@ export const Sidebar = ({ currentPage, isSidebarOpen, navigateTo, user, onLogout
             <button
               key={item.id}
               onClick={() => navigateTo(item.id)}
-              className={`w-full flex items-center gap-4 px-4 py-3 rounded-lg transition-all ${
-                currentPage === item.id 
-                  ? 'bg-primary-light text-primary font-black' 
-                  : 'text-text-muted hover:bg-gray-50 hover:text-primary font-medium'
-              }`}
+              className={`w-full flex items-center gap-4 px-4 py-3 rounded-lg transition-all ${currentPage === item.id
+                ? 'bg-primary-light text-primary font-black'
+                : 'text-text-muted hover:bg-gray-50 hover:text-primary font-medium'
+                }`}
             >
               <item.icon size={20} className={currentPage === item.id ? 'stroke-[2.5]' : ''} />
               {isSidebarOpen && <span className="text-sm">{item.label}</span>}
@@ -65,12 +70,12 @@ export const Sidebar = ({ currentPage, isSidebarOpen, navigateTo, user, onLogout
         </nav>
 
         <div className="px-4 mt-auto">
-          <div 
+          <div
             className="p-4 glass-card flex items-center gap-3 overflow-hidden"
           >
-            <img 
-              src={user?.avatar || "https://picsum.photos/seed/user/100/100"} 
-              alt="User" 
+            <img
+              src={user?.avatar || "https://picsum.photos/seed/user/100/100"}
+              alt="User"
               className="w-10 h-10 rounded-full bg-gray-200 object-cover shrink-0"
               referrerPolicy="no-referrer"
             />
@@ -81,7 +86,7 @@ export const Sidebar = ({ currentPage, isSidebarOpen, navigateTo, user, onLogout
               </div>
             )}
             {isSidebarOpen && (
-              <button 
+              <button
                 onClick={onLogout}
                 className="p-2 text-text-muted hover:text-error transition-colors"
               >
