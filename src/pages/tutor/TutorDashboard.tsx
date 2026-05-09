@@ -1,124 +1,178 @@
-import React from 'react';
-import { motion } from 'motion/react';
-import { Calendar, Users, Clock, DollarSign, CheckCircle2, AlertCircle } from 'lucide-react';
-import { mockBookings } from '../../data';
-import { StatusBadge } from '../../components/StatusBadge';
+import React, { useEffect, useState } from "react";
+import { motion } from "motion/react";
+import { Calendar, Clock, DollarSign, AlertCircle, Users } from "lucide-react";
+import { StatusBadge } from "../../components/StatusBadge";
+import { getCurrentUserFromApi } from "../../authService";
+import { getAvailability, AvailabilitySlot } from "../../api";
 
 interface TutorDashboardProps {
-  stats: any[];
   navigateTo: (page: string) => void;
 }
 
-export const TutorDashboard = ({ stats, navigateTo }: TutorDashboardProps) => {
-  // Tutor specific stats
+export const TutorDashboard = ({ navigateTo }: TutorDashboardProps) => {
+  const [slots, setSlots] = useState<AvailabilitySlot[]>([]);
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadDashboard();
+  }, []);
+
+  const loadDashboard = async () => {
+    try {
+      const userData = await getCurrentUserFromApi();
+      setUser(userData);
+
+      const availability = await getAvailability(userData.userId);
+      setSlots(availability);
+    } catch (error) {
+      console.error("Failed loading tutor dashboard", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const today = new Date().toLocaleDateString("en-CA");
+
+  const todaySessions = slots.filter((s) => s.date === today);
+
+  const upcoming = slots.filter((s) => s.date >= today);
+
+  const pending = slots.filter((s) => s.status === "pending");
+
   const tutorStats = [
-    { label: "Today's Sessions", value: '2', icon: Clock, color: 'text-primary' },
-    { label: "Pending Requests", value: '5', icon: AlertCircle, color: 'text-amber-500' },
-    { label: "Active Students", value: '18', icon: Users, color: 'text-indigo-500' },
-    { label: "Month Earnings", value: '$2,450', icon: DollarSign, color: 'text-success' },
+    {
+      label: "Today's Sessions",
+      value: todaySessions.length,
+      icon: Clock,
+      color: "text-primary",
+    },
+    {
+      label: "Pending Requests",
+      value: pending.length,
+      icon: AlertCircle,
+      color: "text-amber-500",
+    },
+    {
+      label: "Upcoming Sessions",
+      value: upcoming.length,
+      icon: Users,
+      color: "text-indigo-500",
+    },
+    {
+      label: "Hourly Rate",
+      value: `$${user?.hourlyRate ?? "--"}`,
+      icon: DollarSign,
+      color: "text-green-500",
+    },
   ];
 
-  const pendingRequests = mockBookings.filter(b => b.status === 'pending');
-  const upcomingSessions = mockBookings.filter(b => b.status === 'confirmed').slice(0, 3);
+  if (loading) {
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center">
+        <p className="font-bold text-gray-500">Loading Dashboard...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-10">
+      {/* HEADER */}
       <header>
-        <p className="text-primary font-bold text-sm tracking-widest uppercase mb-1">Tutor Command Center</p>
-        <h1 className="text-4xl font-black tracking-tight">Dashboard</h1>
+        <p className="text-primary font-bold text-sm tracking-widest uppercase mb-1">
+          Tutor Command Center
+        </p>
+        <h1 className="text-4xl font-black tracking-tight">
+          Welcome, {user?.name ?? "Tutor"}
+        </h1>
+        <p className="text-gray-500 text-sm mt-1">
+          {user?.subjects} • {user?.bio}
+        </p>
       </header>
 
+      {/* STATS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {tutorStats.map((stat, i) => (
-          <motion.div 
+          <motion.div
             key={i}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
-            className="glass-card p-8 border-b-4 border-transparent hover:border-primary transition-all group"
+            className="bg-white rounded-3xl p-6 border shadow-sm hover:border-primary transition-all group"
           >
-            <div className={`p-3 rounded-2xl bg-gray-50 w-fit mb-4 group-hover:bg-primary/10 group-hover:text-primary transition-colors ${stat.color}`}>
-              <stat.icon size={24} />
+            <div className="flex justify-between items-center mb-4">
+              <p className="text-xs text-gray-500 uppercase font-bold tracking-widest">
+                {stat.label}
+              </p>
+              <stat.icon size={18} className={stat.color} />
             </div>
-            <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">{stat.label}</p>
-            <p className="text-3xl font-black mt-1">{stat.value}</p>
+            <h2 className="text-3xl font-black">{stat.value}</h2>
           </motion.div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-        <div className="lg:col-span-8 space-y-8">
-          <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-black tracking-tight">Upcoming Sessions</h2>
-            <button onClick={() => navigateTo('sessions')} className="text-primary text-xs font-black uppercase tracking-widest hover:underline">Full Schedule</button>
-          </div>
-          
-          <div className="space-y-4">
-            {upcomingSessions.map((session) => (
-              <div key={session.id} className="glass-card p-6 flex items-center justify-between border-l-4 border-primary">
-                <div className="flex items-center gap-6">
-                  <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center text-primary shrink-0">
-                    <Calendar size={28} />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-sm">{session.subject}</h3>
-                    <p className="text-xs text-text-muted mt-1">Student: <span className="font-bold text-text-main">{session.studentName}</span> • {session.date} at {session.startTime}</p>
-                  </div>
-                </div>
-                <div className="flex gap-3 items-center">
-                   <StatusBadge status={session.status} />
-                   <button className="px-5 py-2.5 bg-primary text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:shadow-lg shadow-primary/20 transition-all">Join Room</button>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="flex justify-between items-center pt-4">
-            <h2 className="text-2xl font-black tracking-tight">Recent Feedback</h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {[1, 2].map((_, i) => (
-              <div key={i} className="glass-card p-8 bg-gray-50/50 border-none italic space-y-4">
-                 <div className="flex text-amber-500 gap-1"><Clock size={12}/><Clock size={12}/><Clock size={12}/><Clock size={12}/><Clock size={12}/></div>
-                 <p className="text-sm text-text-muted font-medium">"Explained the complexity of Quantum mechanics in a way that finally clicked for me. Highly recommended!"</p>
-                 <p className="text-[10px] font-black uppercase tracking-widest">- Alex J., Computer Science</p>
-              </div>
-            ))}
-          </div>
+      {/* UPCOMING SESSIONS */}
+      <div className="space-y-5">
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-bold">Upcoming Sessions</h2>
+          <button
+            onClick={() => navigateTo("sessions")}
+            className="text-primary text-sm font-bold"
+          >
+            Full Schedule
+          </button>
         </div>
 
-        <div className="lg:col-span-4 space-y-8">
-           <div className="flex justify-between items-center">
-             <h2 className="text-2xl font-black tracking-tight">Today</h2>
-           </div>
-           <div className="glass-card bg-primary p-8 text-white space-y-10 relative overflow-hidden shadow-2xl shadow-primary/30">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl" />
-              <div className="space-y-2">
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">Success Rate</p>
-                <p className="text-5xl font-black tabular-nums tracking-tighter">98%</p>
-                <div className="w-full h-1 bg-white/20 rounded-full overflow-hidden mt-4">
-                  <div className="w-[98%] h-full bg-white" />
+        {upcoming.length === 0 ? (
+          <div className="bg-white p-8 rounded-3xl border text-center text-gray-500">
+            No upcoming sessions.
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {upcoming.slice(0, 4).map((slot) => (
+              <div
+                key={slot.slotId}
+                className="bg-white p-5 rounded-3xl border flex justify-between items-center"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-primary/10 rounded-2xl flex items-center justify-center text-primary shrink-0">
+                    <Calendar size={20} />
+                  </div>
+                  <div>
+                    <h3 className="font-bold">
+                      {slot.subject || "Tutoring Session"}
+                    </h3>
+                    <p className="text-sm text-gray-500 mt-1">
+                      {slot.date} • {slot.startTime} – {slot.endTime}
+                    </p>
+                  </div>
                 </div>
+                <StatusBadge status={slot.status} />
               </div>
-              
-              <div className="space-y-4 pt-10 border-t border-white/10">
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">Pending Reviews</p>
-                <div className="space-y-3">
-                  {pendingRequests.slice(0, 3).map((req) => (
-                    <div key={req.id} className="flex items-center justify-between text-xs font-bold">
-                       <span>{req.studentName}</span>
-                       <span className="opacity-60 text-[10px]">{req.subject}</span>
-                    </div>
-                  ))}
-                </div>
-                <button 
-                  onClick={() => navigateTo('requests')}
-                  className="w-full py-4 mt-6 bg-white text-primary rounded-[1.5rem] font-black text-[10px] uppercase tracking-widest shadow-xl hover:scale-[1.02] transition-all"
-                >
-                  Manage Requests
-                </button>
-              </div>
-           </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* AVAILABILITY SUMMARY */}
+      <div className="bg-gray-900 text-white p-10 rounded-3xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-56 h-56 bg-primary/20 blur-[90px] rounded-full" />
+        <div className="relative z-10 max-w-xl">
+          <h3 className="text-2xl font-black mb-4">Your Availability</h3>
+          <p className="text-white/70 leading-relaxed">
+            You have{" "}
+            <span className="text-white font-bold">
+              {slots.filter((s) => s.status === "available").length} open slots
+            </span>{" "}
+            available for booking. Keep your schedule updated to get more
+            students.
+          </p>
+          <button
+            onClick={() => navigateTo("availability")}
+            className="mt-6 text-primary font-bold text-sm"
+          >
+            Manage Availability →
+          </button>
         </div>
       </div>
     </div>

@@ -19,7 +19,6 @@ import { MaterialsPage } from "./pages/MaterialsPage";
 import { ProfilePage } from "./pages/ProfilePage";
 
 import { TutorDashboard } from "./pages/tutor/TutorDashboard";
-import { BookingRequests } from "./pages/tutor/BookingRequests";
 import { Availability } from "./pages/tutor/Availability";
 
 import { logoutUser, getCurrentUserFromApi } from "./authService";
@@ -78,26 +77,6 @@ export default function App() {
     }
   };
 
-  const stats = [
-    {
-      label: "Upcoming Sessions",
-      value: "4",
-      trend: "↑ 2 from last week",
-      trendColor: "text-success",
-    },
-    {
-      label: "Learning Hours",
-      value: "24.5h",
-      trend: "Across 4 subjects",
-      trendColor: "text-text-muted",
-    },
-    {
-      label: "Active Tutors",
-      value: "3",
-      trend: "Mathematics, Physics, UI",
-      trendColor: "text-text-muted",
-    },
-  ];
 
   const navigateTo = (page: string, tutor: Tutor | null = null) => {
     setCurrentPage(page);
@@ -114,9 +93,7 @@ export default function App() {
     if (user.role === "tutor") {
       switch (currentPage) {
         case "dashboard":
-          return <TutorDashboard stats={stats} navigateTo={navigateTo} />;
-        case "requests":
-          return <BookingRequests />;
+          return <TutorDashboard  navigateTo={navigateTo} />;
         case "availability":
           return <Availability />;
         case "materials":
@@ -130,7 +107,7 @@ export default function App() {
             <TutorsList navigateTo={navigateTo} />
           );
         default:
-          return <TutorDashboard stats={stats} navigateTo={navigateTo} />;
+          return <TutorDashboard  navigateTo={navigateTo} />;
       }
     }
 
