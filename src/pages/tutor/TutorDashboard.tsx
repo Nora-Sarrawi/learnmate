@@ -48,12 +48,6 @@ export const TutorDashboard = ({ navigateTo }: TutorDashboardProps) => {
       color: "text-primary",
     },
     {
-      label: "Pending Requests",
-      value: pending.length,
-      icon: AlertCircle,
-      color: "text-amber-500",
-    },
-    {
       label: "Upcoming Sessions",
       value: upcoming.length,
       icon: Users,

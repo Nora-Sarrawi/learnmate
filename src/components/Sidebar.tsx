@@ -31,7 +31,6 @@ export const Sidebar = ({ currentPage, isSidebarOpen, navigateTo, user, onLogout
 
   const tutorLinks = [
     { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
-    { id: 'requests', label: 'New Requests', icon: Briefcase },
     { id: 'availability', label: 'Availability', icon: Clock },
     { id: 'materials', label: 'Resources', icon: BookOpen },
     { id: 'profile', label: 'Profile', icon: User },

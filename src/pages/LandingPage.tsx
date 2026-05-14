@@ -15,7 +15,7 @@ export const LandingPage = ({ setView }: LandingPageProps) => {
             ◈
           </div>
           <span className="text-2xl font-black text-primary tracking-tighter">
-            SmartTutor
+            LearnMate
           </span>
         </div>
 
@@ -118,7 +118,7 @@ export const LandingPage = ({ setView }: LandingPageProps) => {
             Ready to start your journey?
           </h2>
           <p className="text-lg text-white/80 max-w-xl mx-auto relative z-10 font-medium">
-            Join thousands of students achieving their goals with SmartTutor.
+            Join thousands of students achieving their goals with LearnMate.
           </p>
           <div className="relative z-10 pt-4">
             <button
@@ -137,7 +137,7 @@ export const LandingPage = ({ setView }: LandingPageProps) => {
             ◈
           </div>
           <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.4em]">
-            © 2026 SmartTutor Global INC
+            © 2026 LearnMate Global INC
           </p>
         </div>
       </footer>
